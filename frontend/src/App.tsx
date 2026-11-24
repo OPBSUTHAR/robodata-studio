@@ -10,6 +10,7 @@ import Synthetic from './pages/Synthetic'
 import QA from './pages/QA'
 import EdgeCases from './pages/EdgeCases'
 import ExportCenter from './pages/ExportCenter'
+import PublicDataHub from './pages/PublicDataHub'
 import AIAssistant from './pages/AIAssistant'
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/qa" element={<QA />} />
         <Route path="/edgecases" element={<EdgeCases />} />
         <Route path="/export" element={<ExportCenter />} />
+        <Route path="/publicdata" element={<PublicDataHub />} />
         <Route path="/ai" element={<AIAssistant />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import datasets, frames, annotations, qa, synthetic, export
+from .routers import datasets, frames, annotations, qa, synthetic, export, public
 
 app = FastAPI(title="RoboData Studio API", version="1.0.0")
 
@@ -18,6 +18,7 @@ app.include_router(annotations.router, prefix="/api/annotations", tags=["annotat
 app.include_router(qa.router, prefix="/api/qa", tags=["qa"])
 app.include_router(synthetic.router, prefix="/api/synthetic", tags=["synthetic"])
 app.include_router(export.router, prefix="/api/export", tags=["export"])
+app.include_router(public.router, prefix="/api/public", tags=["public"])
 
 @app.get("/api/health")
 def health():

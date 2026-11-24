@@ -94,6 +94,14 @@ export default function DatasetDetail() {
 }
 
 function FrameThumb({ frame }: { frame: any }) {
+  if (frame.imageUrl) {
+    return (
+      <div className="relative w-full aspect-video bg-[#0b1020] overflow-hidden">
+        <img src={frame.imageUrl} alt={frame.id} className="w-full h-full object-cover" loading="lazy" />
+        {frame.occlusionLevel > 0.3 && <div className="absolute inset-0 bg-red-500/25" />}
+      </div>
+    )
+  }
   // synthetic thumbnail via canvas
   return (
     <div className="relative w-full aspect-video bg-[#0b1020] overflow-hidden">

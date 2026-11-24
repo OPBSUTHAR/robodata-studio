@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store/useStore'
 import { ArrowLeft, Square, Pen, CircleDot, Box, Trash2, Wand2, Download, Undo2, MousePointer2, Layers } from 'lucide-react'
 import { uid } from '../lib/utils'
@@ -10,6 +10,8 @@ type Tool = 'select' | 'bbox' | 'polygon' | 'keypoint' | 'cuboid'
 export default function AnnotationStudio() {
   const { frameId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const imgUrl = searchParams.get('img')
   const datasets = useStore(s => s.datasets)
   const framesByDataset = useStore(s => s.framesByDataset)
   const annotationsByFrame = useStore(s => s.annotationsByFrame)
@@ -39,6 +41,14 @@ export default function AnnotationStudio() {
   const [polyPoints, setPolyPoints] = useState<{ x: number; y: number }[]>([])
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null)
   const [showPC, setShowPC] = useState(true)
+  const [loadedImg, setLoadedImg] = useState<HTMLImageElement | null>(null)
+  useEffect(() => {
+    if (!imgUrl) { setLoadedImg(null); return }
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => setLoadedImg(img)
+    img.src = imgUrl
+  }, [imgUrl])
 
   const dataset = datasets.find(d => d.id === frame?.datasetId)
   const classes = dataset?.classes ?? [{ id: 1, name: 'object', color: '#6366f1' }]
@@ -52,26 +62,30 @@ export default function AnnotationStudio() {
     if (!ctx) return
     canvas.width = frame.width
     canvas.height = frame.height
-    // background
-    const pal: Record<string, string[]> = {
-      bright: ['#1e3a5f', '#3b82f6'],
-      dim: ['#0f172a', '#1e293b'],
-      glare: ['#7c3aed', '#fbbf24'],
-      low_light: ['#020617', '#1e293b'],
-      night: ['#000000', '#0f172a'],
-    }
-    const [c1, c2] = pal[frame.lighting] ?? pal.bright
-    const g = ctx.createLinearGradient(0, 0, frame.width, frame.height)
-    g.addColorStop(0, c1); g.addColorStop(1, c2)
-    ctx.fillStyle = g; ctx.fillRect(0, 0, frame.width, frame.height)
-    const rng = (s: number) => { let x = s; return () => { x = (x * 9301 + 49297) % 233280; return x / 233280 } }
-    const r = rng(frame.index * 997 + 1)
-    for (let i = 0; i < 8; i++) {
-      ctx.fillStyle = `hsl(${r() * 360}, 60%, 55%)`
-      ctx.fillRect(r() * (frame.width - 80), r() * (frame.height - 80), 30 + r() * 90, 30 + r() * 70)
-    }
-    if (frame.occlusionLevel > 0.3) {
-      ctx.fillStyle = 'rgba(239,68,68,0.25)'; ctx.fillRect(0, 0, frame.width, frame.height)
+    if (imgUrl) {
+      if (!loadedImg) return
+      ctx.drawImage(loadedImg, 0, 0, frame.width, frame.height)
+    } else {
+      const pal: Record<string, string[]> = {
+        bright: ['#1e3a5f', '#3b82f6'],
+        dim: ['#0f172a', '#1e293b'],
+        glare: ['#7c3aed', '#fbbf24'],
+        low_light: ['#020617', '#1e293b'],
+        night: ['#000000', '#0f172a'],
+      }
+      const [c1, c2] = pal[frame.lighting] ?? pal.bright
+      const g = ctx.createLinearGradient(0, 0, frame.width, frame.height)
+      g.addColorStop(0, c1); g.addColorStop(1, c2)
+      ctx.fillStyle = g; ctx.fillRect(0, 0, frame.width, frame.height)
+      const rng = (s: number) => { let x = s; return () => { x = (x * 9301 + 49297) % 233280; return x / 233280 } }
+      const r = rng(frame.index * 997 + 1)
+      for (let i = 0; i < 8; i++) {
+        ctx.fillStyle = `hsl(${r() * 360}, 60%, 55%)`
+        ctx.fillRect(r() * (frame.width - 80), r() * (frame.height - 80), 30 + r() * 90, 30 + r() * 70)
+      }
+      if (frame.occlusionLevel > 0.3) {
+        ctx.fillStyle = 'rgba(239,68,68,0.25)'; ctx.fillRect(0, 0, frame.width, frame.height)
+      }
     }
     // draw annotations
     anns.forEach(a => {
@@ -127,7 +141,7 @@ export default function AnnotationStudio() {
       ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.setLineDash([4, 4])
       ctx.strokeRect(start.x, start.y, w, h); ctx.setLineDash([])
     }
-  }, [frame, anns, selectedAnn, drawing, start, cursor, polyPoints, tool, classes])
+  }, [frame, anns, selectedAnn, drawing, start, cursor, polyPoints, tool, classes, loadedImg, imgUrl])
 
   const getPos = (e: React.MouseEvent) => {
     const canvas = canvasRef.current!
@@ -269,6 +283,13 @@ export default function AnnotationStudio() {
             {tool === 'polygon' && polyPoints.length > 0 && (
               <button className="btn text-xs" onClick={() => setPolyPoints([])}>Clear</button>
             )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-xs text-[#9aa3bf]">Real image:</span>
+            <a className="btn text-xs" href="/annotate?img=https%3A%2F%2Fpicsum.photos%2Fseed%2Frobot1%2F1280%2F720">Picsum sample</a>
+            <a className="btn text-xs" href="/annotate?img=http%3A%2F%2Fimages.cocodataset.org%2Fval2017%2F000000000139.jpg">COCO 139</a>
+            <a className="btn text-xs" href="/annotate?img=http%3A%2F%2Fimages.cocodataset.org%2Fval2017%2F000000000285.jpg">COCO 285</a>
+            <a className="btn text-xs" href="/publicdata">More samples →</a>
           </div>
           <div className="relative">
             <canvas ref={canvasRef}

@@ -34,6 +34,7 @@ export interface Frame {
   modalities: Modality[]
   rgbUrl?: string
   depthUrl?: string
+  imageUrl?: string
   width: number
   height: number
   scene: string

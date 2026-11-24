@@ -1,10 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Database, LayoutDashboard, PenTool, Sparkles, ShieldCheck, AlertTriangle, Download, Bot, Menu, X } from 'lucide-react'
+import { Database, LayoutDashboard, PenTool, Sparkles, ShieldCheck, AlertTriangle, Download, Bot, Globe, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 const nav = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/datasets', icon: Database, label: 'Datasets' },
+  { to: '/publicdata', icon: Globe, label: 'Public Data Hub' },
   { to: '/annotate', icon: PenTool, label: 'Annotation Studio' },
   { to: '/synthetic', icon: Sparkles, label: 'Synthetic Data' },
   { to: '/qa', icon: ShieldCheck, label: 'Quality Assurance' },

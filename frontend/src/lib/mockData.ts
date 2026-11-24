@@ -23,9 +23,11 @@ export function generateDatasets(): Dataset[] {
     'Conveyor_Inspection',
     'Synthetic_DomainRand_v2',
     'EdgeCases_Occlusion_Set',
+    'COCO_Real_Samples',
   ]
   return names.map((n, i) => {
-    const fc = [2400, 1800, 3200, 1500, 5000, 900][i]
+    const fcs = [2400, 1800, 3200, 1500, 5000, 900, 10]
+    const fc = fcs[i] ?? 1000
     const ann = Math.floor(fc * (0.3 + i * 0.1))
     return {
       id: `ds_${i + 1}`,
@@ -50,6 +52,8 @@ export function generateFrames(datasetId: string, count: number): Frame[] {
   for (let i = 0; i < count; i++) {
     const lighting = choice(LIGHTINGS)
     const occl = Math.random() < 0.25 ? rand(0.3, 0.85) : rand(0, 0.2)
+    const cocoIds = ['000000000139','000000000285','000000000632','000000037777','000000252219','000000397133','000000000776','000000001000','000000002431','000000002473']
+    const imageUrl = datasetId === 'ds_7' ? `http://images.cocodataset.org/val2017/${cocoIds[i % cocoIds.length]}.jpg` : undefined
     frames.push({
       id: `fr_${datasetId}_${i}`,
       datasetId,
@@ -58,6 +62,7 @@ export function generateFrames(datasetId: string, count: number): Frame[] {
       modalities: ['rgb', 'depth', 'pointcloud'],
       rgbUrl: undefined,
       depthUrl: undefined,
+      imageUrl,
       width: 1280,
       height: 720,
       scene: choice(SCENES),
